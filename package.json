@@ -4,7 +4,6 @@
   "description": "",
   "type": "module",
   "scripts": {
-    "dev": "vercel dev"
   },
   "dependencies": {
     "dotenv": "^17.4.2"
