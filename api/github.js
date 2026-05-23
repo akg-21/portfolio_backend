@@ -35,7 +35,7 @@ export default async function handler(req, res) {
     if (origin !== ALLOWED_ORIGIN && method !== "OPTIONS") {
         const msg = `UNAUTHORIZED | origin=${origin} method=${method} path=${path} ip=${ip} referer=${referer} ua=${userAgent}`;
         writeLog(msg);
-        sendTelegramMessage(
+        await sendTelegramMessage(
             `🚨 <b>Unauthorized API Request</b>\n\n` +
             `🌐 <b>Origin:</b> ${origin}\n` +
             `📡 <b>Method:</b> ${method}\n` +
@@ -43,7 +43,7 @@ export default async function handler(req, res) {
             `🖥 <b>IP:</b> ${ip}\n` +
             `🔍 <b>Referer:</b> ${referer}\n` +
             `📱 <b>User-Agent:</b> ${userAgent}`
-        ).catch(() => {});
+        ).catch((e) => { writeLog(`Telegram Error: ${e.message}`) });
 
         return res.status(403).json({ error: "Forbidden: unauthorized origin." });
     }
@@ -61,14 +61,14 @@ export default async function handler(req, res) {
 
     try {
 
-        // Log + fire access notification (non-blocking)
+        // Log + fire access notification
         writeLog(`ACCESS | origin=${origin} path=${path} ip=${ip}`);
-        sendTelegramMessage(
+        await sendTelegramMessage(
             `✅ <b>Portfolio API Accessed</b>\n\n` +
             `🌐 <b>Origin:</b> ${origin}\n` +
             `🔗 <b>Path:</b> ${path}\n` +
             `🖥 <b>IP:</b> ${ip}`
-        ).catch(() => {});
+        ).catch((e) => { writeLog(`Telegram Error: ${e.message}`) });
 
         // ── Year-specific: contribution calendar only ─────────────────────────
         if (year) {
