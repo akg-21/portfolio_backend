@@ -1,4 +1,5 @@
 import dotenv from "dotenv";
+import { writeLog } from "../utils/logger.js";
 
 dotenv.config();
 
@@ -32,6 +33,8 @@ export default async function handler(req, res) {
 
     // ── Block unauthorized origins ────────────────────────────────────────────
     if (origin !== ALLOWED_ORIGIN && method !== "OPTIONS") {
+        const msg = `UNAUTHORIZED | origin=${origin} method=${method} path=${path} ip=${ip} referer=${referer} ua=${userAgent}`;
+        writeLog(msg);
         sendTelegramMessage(
             `🚨 <b>Unauthorized API Request</b>\n\n` +
             `🌐 <b>Origin:</b> ${origin}\n` +
@@ -58,7 +61,8 @@ export default async function handler(req, res) {
 
     try {
 
-        // Fire access notification (non-blocking)
+        // Log + fire access notification (non-blocking)
+        writeLog(`ACCESS | origin=${origin} path=${path} ip=${ip}`);
         sendTelegramMessage(
             `✅ <b>Portfolio API Accessed</b>\n\n` +
             `🌐 <b>Origin:</b> ${origin}\n` +
@@ -154,6 +158,7 @@ export default async function handler(req, res) {
         return res.status(200).json(data);
 
     } catch (error) {
+        writeLog(`ERROR | ${error.message}`);
         return res.status(500).json({ error: error.message });
     }
 }
