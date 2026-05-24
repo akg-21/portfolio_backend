@@ -3,7 +3,12 @@ import { writeLog } from "../utils/logger.js";
 
 dotenv.config();
 
-const ALLOWED_ORIGIN = "https://akg-21.vercel.app";
+const ALLOWED_ORIGINS = [
+    "https://akg-21.vercel.app",
+    "https://ajayg21.vercel.app",
+    "http://localhost:3000",
+    "http://localhost:5173"
+];
 
 // ── Telegram notification ─────────────────────────────────────────────────────
 async function sendTelegramMessage(message) {
@@ -32,7 +37,7 @@ export default async function handler(req, res) {
     const referer    = req.headers["referer"] || "none";
 
     // ── Block unauthorized origins ────────────────────────────────────────────
-    if (origin !== ALLOWED_ORIGIN && method !== "OPTIONS") {
+    if (!ALLOWED_ORIGINS.includes(origin) && method !== "OPTIONS") {
         const msg = `UNAUTHORIZED | origin=${origin} method=${method} path=${path} ip=${ip} referer=${referer} ua=${userAgent}`;
         writeLog(msg);
         await sendTelegramMessage(
@@ -49,11 +54,15 @@ export default async function handler(req, res) {
     }
 
     // ── Set CORS headers for allowed origin ───────────────────────────────────
-    res.setHeader("Access-Control-Allow-Origin", ALLOWED_ORIGIN);
+    const allowedOrigin = ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0];
+    res.setHeader("Access-Control-Allow-Origin", allowedOrigin);
     res.setHeader("Access-Control-Allow-Methods", "GET, OPTIONS");
     res.setHeader("Access-Control-Allow-Headers", "Content-Type");
 
     if (method === "OPTIONS") {
+        if (!ALLOWED_ORIGINS.includes(origin)) {
+             return res.status(403).end();
+        }
         return res.status(200).end();
     }
 
